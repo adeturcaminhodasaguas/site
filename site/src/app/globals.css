@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@import "tailwindcss-animated";
+
+.poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+.montserrat {
+  font-family: 'Montserrat', sans-serif;
+}
+
+@theme {
+  --color-background: #F5F7FA;
+  --color-background-alt: #EDEFF2;
+  --color-background-secondary: #E2E2E3;
+  --color-foreground: #1E1E1E;
+  --color-foreground-secondary: #6B7280;
+  --color-primary: #2D2F93;
+  --color-secondary: #0079C1;
+  --color-highlight: #F7B733;
+}

@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: backend
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://100.42.187.253:5008/turismo?useTimezone=true&serverTimezone=UTC
+    username: mariadb
+    password: 7e9232c30f1eb2e6054c
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MariaDBDialect
+    show-sql: false
+    open-in-view: false
+  security:
+    token:
+      secret: 7e9232c30f1eb2e6054c
+      expiration: 3600000
+  minio:
+    url: https://rodrigo-minio-turismo.uwqcav.easypanel.host
+    access-key: admin
+    secret-key: password
+    bucket: turismo
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: user
+    password: password
+    queue-nome: turismo.email
+
+logging:
+  level:
+    root: WARN
+    br.com.rodrigofroes.backend: DEBUG
