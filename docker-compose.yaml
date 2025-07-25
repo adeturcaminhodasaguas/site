@@ -29,44 +29,47 @@ services:
     build: 
       context: ./site
       args:
-        NEXT_PUBLIC_API_URL: /api/
+        NEXT_PUBLIC_API_URL: http://api.localhost/
     container_name: site
     ports:
       - "3000:3000"
     depends_on:
       - backend
     environment:
-      - NEXT_PUBLIC_API_URL= /api/
+      - NEXT_PUBLIC_API_URL= http://api.localhost/
     networks:
       - public_network
   
   admin:
-    build: ./admin
-    container_name: turismo_admin
+    build: 
+      context: ./admin
+      args:
+        NEXT_PUBLIC_API_URL: http://api.localhost/
+    container_name: admin
     ports:
       - "3001:3000"
     depends_on:
       - backend
     environment:
-      - NEXT_PUBLIC_API_URL= /api/
+      - NEXT_PUBLIC_API_URL= http://api.localhost/
     networks:
       - public_network
 
-  # email_service:
-  #   build: ./turismo_email
-  #   container_name: turismo_email_service
-  #   ports:
-  #     - "8081:8081"
-  #   environment:
-  #     - SPRING_RABBITMQ_HOST=rabbitmq
-  #     - SPRING_RABBITMQ_PORT=5672
-  #     - SPRING_RABBITMQ_USERNAME=user
-  #     - SPRING_RABBITMQ_PASSWORD=password
-  #     - SPRING_RABBIT_QUEUE_NAME=turismo.email
-  #   depends_on:
-  #     - rabbitmq
-  #   networks:
-  #     - public_network
+    # email_service:
+    #   build: ./turismo_email
+    #   container_name: turismo_email_service
+    #   ports:
+    #     - "8081:8081"
+    #   environment:
+    #     - SPRING_RABBITMQ_HOST=rabbitmq
+    #     - SPRING_RABBITMQ_PORT=5672
+    #     - SPRING_RABBITMQ_USERNAME=user
+    #     - SPRING_RABBITMQ_PASSWORD=password
+    #     - SPRING_RABBIT_QUEUE_NAME=turismo.email
+    #   depends_on:
+    #     - rabbitmq
+    #   networks:
+    #     - public_network
     
   backend:
     build: ./api
