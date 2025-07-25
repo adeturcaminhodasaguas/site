@@ -23,8 +23,8 @@ export default function EventsPage() {
             setLoading(true);
             const service = new EventsService();
             const response = await service.listar();
-            setEvents(response);
-            setFilteredEvents(response);
+            setEvents(response?.content || []);
+            setFilteredEvents(response?.content || []);
         } catch (error) {
             console.error("Erro ao carregar eventos:", error);
         } finally {
