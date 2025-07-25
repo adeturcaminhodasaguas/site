@@ -53,6 +53,24 @@ public class EventoService {
         return EventoEnum.getCategorias();
     }
 
+    public Page<EventoResponse> listarWeb(Pageable pageable) {
+        Page<EventoDomain> eventos = eventoRepository.findAllByDeletadoEmIsNullOrderByNome(pageable);
+        logger.info("Listando eventos para a web. Total: {}", eventos.getTotalElements());
+        return eventos.map(EventoMapper::toResponse);
+    }
+
+    public List<EventoResponse> listarWeb() {
+        List<EventoDomain> eventos = eventoRepository.findByDestaqueAndDeletadoEmIsNull(false);
+        logger.info("Listando eventos para a web. Total: {}", eventos.size());
+        return EventoMapper.toResponseList(eventos);
+    }
+
+    public List<EventoResponse> listarDestaque() {
+        List<EventoDomain> eventos = eventoRepository.findByDestaqueAndDeletadoEmIsNull(true);
+        logger.info("Listando eventos em destaque. Total: {}", eventos.size());
+        return EventoMapper.toResponseList(eventos);
+    }
+
     public Page<EventoResponse> listar(Pageable pageable) {
         Page<EventoDomain> eventos = eventoRepository.findAllByDeletadoEmIsNullOrderByNome(pageable);
         logger.info("Listando eventos. Total: {}", eventos.getTotalElements());

@@ -46,7 +46,6 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.DELETE, "/municipio/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/municipio/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/municipio/status/{id}").hasRole("ADMIN")
-
                         .requestMatchers(HttpMethod.GET, "/municipio/web/listar").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "turismo-experiencia").hasRole("ADMIN")
@@ -55,7 +54,6 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.DELETE, "turismo-experiencia/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "turismo-experiencia/status/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "turismo-experiencia/{id}").hasRole("ADMIN")
-
                         .requestMatchers(HttpMethod.GET, "/turismo-experiencia/web/listar").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/sabor-cultura").hasRole("ADMIN")
@@ -63,7 +61,6 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/sabor-cultura/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/sabor-cultura/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/sabor-cultura/status/{id}").hasRole("ADMIN")
-
                         .requestMatchers(HttpMethod.GET, "/sabor-cultura/web/listar").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/evento").hasRole("ADMIN")
@@ -73,12 +70,15 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.PUT, "/evento/status/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/evento/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/evento/categorias").hasRole("ADMIN")
+                        
+                        .requestMatchers(HttpMethod.GET, "/evento/web/listar/destaque").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/evento/web/listar").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/newsletter").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/newsletter").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/newsletter/status/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/newsletter/{id}").hasRole("ADMIN")
-
+                        .requestMatchers(HttpMethod.POST, "/newsletter").permitAll()
+                        
                         .anyRequest().authenticated())
                 .addFilterBefore(securityFilterConfiguration, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -98,7 +98,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001" ));
+        configuration.setAllowedOrigins(Arrays.asList("http://site.localhost", "http://admin.localhost" ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(false);

@@ -37,6 +37,18 @@ public class EventoController {
         return ResponseEntity.ok(eventos);
     }
 
+    @GetMapping("web/listar/destaque")
+    public ResponseEntity<List<EventoResponse>> listarDestaque() {
+        List<EventoResponse> eventos = eventoService.listarDestaque();
+        return ResponseEntity.ok(eventos);
+    }
+
+    @GetMapping("web/listar")
+    public ResponseEntity<Page<EventoResponse>> listarWeb(Pageable pageable) {
+        Page<EventoResponse> eventos = eventoService.listarWeb(pageable);
+        return ResponseEntity.ok(eventos);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<MensagemResponse> deletar(@PathVariable("id") UUID id) {
         MensagemResponse evento = eventoService.deletar(id);
