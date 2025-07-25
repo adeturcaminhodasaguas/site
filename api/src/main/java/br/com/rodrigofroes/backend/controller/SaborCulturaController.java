@@ -1,7 +1,6 @@
 package br.com.rodrigofroes.backend.controller;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
