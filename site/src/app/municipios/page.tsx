@@ -1,41 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Container from "@/components/Container";
 import SectionTitle from "@/components/sections/SectionTitle";
 import Municipality from "@/components/Municipality";
 import FadeInOnScroll from "@/components/animation/FadeInOnScroll";
 import CardSkeleton from "@/components/CardSkeleton";
 import FilterNotFound from "@/components/FilterNotFound";
-import InfiniteScrollLoadMore from "@/components/InfiniteScrollLoadMore";
+import InfiniteScrollWithPagination from "@/components/InfiniteScrollWithPagination";
 import Modal from "@/components/Modal";
 import DetailsMunicipality from "@/components/DetailsMunicipality";
 import { MunicipalityType } from "@/lib/interfaces/MunicipalityType";
 import MunicipalityService from "@/lib/service/MunicipalityService";
 import { showToast } from "@/components/ShowToast";
+import useInfiniteScroll from "@/hooks/useInfiniteScroll";
 
 export default function MunicipiosPage() {
-    const [municipality, setMunicipality] = useState<MunicipalityType[]>([]);
-    const [loading, setLoading] = useState(true);
     const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityType>({} as MunicipalityType);
     const [modalOpen, setModalOpen] = useState(false);
 
-    const fetchMunicipality = async () => {
-        try {
-            setLoading(true);
+    const {items: municipality,loading,hasMore,loadMore} = useInfiniteScroll({
+        fetchFunction: async (page: number, size: number) => {
             const service = new MunicipalityService();
-            const response = await service.listar();
-            setMunicipality(response?.content);
-        } catch (error) {
-            console.error("Erro ao carregar municípios:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchMunicipality();
-    }, []);
+            return await service.listar(page, size);
+        },
+        initialPageSize: 6,
+    });
 
     const handleMunicipalityClick = (id: string) => {
         const selected = municipality.find((item) => item.id === id);
@@ -57,25 +47,30 @@ export default function MunicipiosPage() {
 
             <Container>
                 <div className="py-8">
-                    <InfiniteScrollLoadMore totalItems={municipality.length}>
-                        {(visibleCount) =>
-                            loading ? (
+                    <InfiniteScrollWithPagination
+                        items={municipality}
+                        loading={loading}
+                        hasMore={hasMore}
+                        onLoadMore={loadMore}
+                    >
+                        {(items) =>
+                            loading && items.length === 0 ? (
                                 <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
                                     {Array.from({ length: 6 }).map((_, index) => (
                                         <CardSkeleton key={index} />
                                     ))}
                                 </div>
-                            ) : municipality.length === 0 ? (
+                            ) : items.length === 0 ? (
                                 <div className="flex justify-center items-center p-10">
                                     <FilterNotFound />
                                 </div>
                             ) : (
                                 <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                                    {municipality.slice(0, visibleCount).map((item, index) => (
+                                    {items.map((item, index) => (
                                         <FadeInOnScroll
                                             key={item.id}
                                             direction="up"
-                                            delay={0.2 + index * 0.1}
+                                            delay={0.2 + (index % 6) * 0.1}
                                             className="flex justify-center transition-all duration-300 transform hover:-translate-y-2"
                                         >
                                             <button
@@ -92,7 +87,7 @@ export default function MunicipiosPage() {
                                 </div>
                             )
                         }
-                    </InfiniteScrollLoadMore>
+                    </InfiniteScrollWithPagination>
 
                     <Modal
                         isOpen={modalOpen}

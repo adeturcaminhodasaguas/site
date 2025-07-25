@@ -8,8 +8,8 @@ export default class EventsService {
         return response;
     }
 
-    async listar(): Promise<PaginacaoType<EventsType>> {
-        const response = await HttpClient.get<PaginacaoType<EventsType>>("evento/web/listar?page=0&size=6");
+    async listar(page: number = 0, size: number = 6): Promise<PaginacaoType<EventsType>> {
+        const response = await HttpClient.get<PaginacaoType<EventsType>>(`evento/web/listar?page=${page}&size=${size}`);
         return response;
     }
 }

@@ -7,46 +7,47 @@ import Tourism from "@/components/Tourism";
 import FadeInOnScroll from "@/components/animation/FadeInOnScroll";
 import CardSkeleton from "@/components/CardSkeleton";
 import FilterNotFound from "@/components/FilterNotFound";
-import InfiniteScrollLoadMore from "@/components/InfiniteScrollLoadMore";
+import InfiniteScrollWithPagination from "@/components/InfiniteScrollWithPagination";
 import Filter from "@/components/Filter";
 import Modal from "@/components/Modal";
 import DetailsTourism from "@/components/DetailsTourism";
 import { TourismType } from "@/lib/interfaces/TourismType";
 import TourismService from "@/lib/service/TourismService";
+import useInfiniteScroll from "@/hooks/useInfiniteScroll";
 
 export default function Turismo() {
-    const [tourism, setTourism] = useState<TourismType[]>([]);
-    const [loading, setLoading] = useState(true);
     const [filteredTourism, setFilteredTourism] = useState<TourismType[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>("");
     const [selectedTourism, setSelectedTourism] = useState<TourismType>({} as TourismType);
     const [modalOpen, setModalOpen] = useState(false);
+    const [municipalities, setMunicipalities] = useState<string[]>([]);
 
-    const fetchTourism = async () => {
-        try {
-            setLoading(true);
+    const {
+        items: tourism,
+        loading,
+        hasMore,
+        loadMore,
+        refresh,
+    } = useInfiniteScroll({
+        fetchFunction: async (page: number, size: number) => {
             const service = new TourismService();
-            const response = await service.listar();
-            setTourism(response?.content);
-            setFilteredTourism(response?.content);
-        } catch (error) {
-            console.error("Erro ao carregar turismo:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+            return await service.listar(page, size);
+        },
+        initialPageSize: 6,
+    });
 
+    // Atualizar municípios quando turismo carregar
     useEffect(() => {
-        fetchTourism();
-    }, []);
+        const uniqueMunicipalities = Array.from(new Set(tourism.map(item => item.municipio.nome)));
+        setMunicipalities(uniqueMunicipalities);
+    }, [tourism]);
 
+    // Filtrar turismo por município
     useEffect(() => {
         if (selectedCategory === "") {
             setFilteredTourism(tourism);
         } else {
-            const filtered = tourism.filter(item =>
-                item.municipio.nome === selectedCategory
-            );
+            const filtered = tourism.filter(item => item.municipio.nome === selectedCategory);
             setFilteredTourism(filtered);
         }
     }, [selectedCategory, tourism]);
@@ -59,13 +60,17 @@ export default function Turismo() {
         }
     };
 
-    const municipalities = Array.from(new Set(tourism.map(item => item.municipio.nome)));
+    const handleCategoryChange = (category: string) => {
+        setSelectedCategory(category);
+        // Se aplicar filtro, não carregamos mais páginas (limitação do filtro client-side)
+        // Para filtro server-side, você modificaria o fetchFunction no hook
+    };
 
     return (
         <div>
             <div className="flex flex-col items-center justify-center py-10 px-4">
-                <SectionTitle subtitle="Empresas locais que trabalham para proporcionar experiências únicas e inesquecíveis em nossa região, conectando visitantes com as belezas naturais e culturais.">
-                    Turismo & Experiências
+                <SectionTitle subtitle="Explore nossos destinos únicos, descubra experiências inesquecíveis e conecte-se com a autenticidade de cada local.">
+                    Turismo & Experiência
                 </SectionTitle>
             </div>
 
@@ -75,34 +80,29 @@ export default function Turismo() {
                         <Filter
                             filters={municipalities}
                             selectedFilter={selectedCategory}
-                            onFilterChange={setSelectedCategory}
+                            onFilterChange={handleCategoryChange}
                         />
                     </FadeInOnScroll>
 
-                    <InfiniteScrollLoadMore totalItems={filteredTourism.length}>
-                        {(visibleCount) =>
-                            loading ? (
-                                <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                                    {Array.from({ length: 6 }).map((_, index) => (
-                                        <CardSkeleton key={index} />
-                                    ))}
-                                </div>
-                            ) : filteredTourism.length === 0 ? (
+                    {/* Se houver filtro ativo, não usamos paginação infinita */}
+                    {selectedCategory ? (
+                        <div className="py-8">
+                            {filteredTourism.length === 0 ? (
                                 <div className="flex justify-center items-center p-10">
                                     <FilterNotFound />
                                 </div>
                             ) : (
                                 <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                                    {filteredTourism.slice(0, visibleCount).map((item, index) => (
+                                    {filteredTourism.map((item, index) => (
                                         <FadeInOnScroll
                                             key={item.id}
                                             direction="up"
-                                            delay={0.2 + index * 0.1}
+                                            delay={0.2 + (index % 6) * 0.1}
                                             className="flex justify-center transition-all duration-300 transform hover:-translate-y-2"
                                         >
                                             <button
-                                                className="w-full h-full flex justify-center items-center"
                                                 onClick={() => handleTourismClick(item.id)}
+                                                className="w-full h-full flex justify-center items-center"
                                                 type="button"
                                             >
                                                 <Tourism tourism={item} />
@@ -110,14 +110,54 @@ export default function Turismo() {
                                         </FadeInOnScroll>
                                     ))}
                                 </div>
-                            )
-                        }
-                    </InfiniteScrollLoadMore>
+                            )}
+                        </div>
+                    ) : (
+                        <InfiniteScrollWithPagination
+                            items={tourism}
+                            loading={loading}
+                            hasMore={hasMore}
+                            onLoadMore={loadMore}
+                        >
+                            {(items) =>
+                                loading && items.length === 0 ? (
+                                    <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                        {Array.from({ length: 6 }).map((_, index) => (
+                                            <CardSkeleton key={index} />
+                                        ))}
+                                    </div>
+                                ) : items.length === 0 ? (
+                                    <div className="flex justify-center items-center p-10">
+                                        <FilterNotFound />
+                                    </div>
+                                ) : (
+                                    <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                        {items.map((item, index) => (
+                                            <FadeInOnScroll
+                                                key={item.id}
+                                                direction="up"
+                                                delay={0.2 + (index % 6) * 0.1}
+                                                className="flex justify-center transition-all duration-300 transform hover:-translate-y-2"
+                                            >
+                                                <button
+                                                    onClick={() => handleTourismClick(item.id)}
+                                                    className="w-full h-full flex justify-center items-center"
+                                                    type="button"
+                                                >
+                                                    <Tourism tourism={item} />
+                                                </button>
+                                            </FadeInOnScroll>
+                                        ))}
+                                    </div>
+                                )
+                            }
+                        </InfiniteScrollWithPagination>
+                    )}
 
                     <Modal
                         isOpen={modalOpen}
                         onClose={() => setModalOpen(false)}
-                        title="Detalhes do Turismo & Experiências"
+                        title="Detalhes do Turismo & Experiência"
                     >
                         <DetailsTourism tourism={selectedTourism} />
                     </Modal>
