@@ -7,35 +7,38 @@ import Events from "@/components/Events";
 import FadeInOnScroll from "@/components/animation/FadeInOnScroll";
 import CardSkeleton from "@/components/CardSkeleton";
 import FilterNotFound from "@/components/FilterNotFound";
-import InfiniteScrollLoadMore from "@/components/InfiniteScrollLoadMore";
+import InfiniteScrollWithPagination from "@/components/InfiniteScrollWithPagination";
 import Filter from "@/components/Filter";
 import { EventsType } from "@/lib/interfaces/EventsType";
 import EventsService from "@/lib/service/EventsService";
+import useInfiniteScroll from "@/hooks/useInfiniteScroll";
 
 export default function EventsPage() {
-    const [events, setEvents] = useState<EventsType[]>([]);
-    const [loading, setLoading] = useState(true);
     const [filteredEvents, setFilteredEvents] = useState<EventsType[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>("");
+    const [categories, setCategories] = useState<string[]>([]);
 
-    const fetchEvents = async () => {
-        try {
-            setLoading(true);
+    const {
+        items: events,
+        loading,
+        hasMore,
+        loadMore,
+        refresh,
+    } = useInfiniteScroll({
+        fetchFunction: async (page: number, size: number) => {
             const service = new EventsService();
-            const response = await service.listar();
-            setEvents(response?.content || []);
-            setFilteredEvents(response?.content || []);
-        } catch (error) {
-            console.error("Erro ao carregar eventos:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+            return await service.listar(page, size);
+        },
+        initialPageSize: 6,
+    });
 
+    // Atualizar categorias quando eventos carregarem
     useEffect(() => {
-        fetchEvents();
-    }, []);
+        const uniqueCategories = Array.from(new Set(events.map(event => event.categoria)));
+        setCategories(uniqueCategories);
+    }, [events]);
 
+    // Filtrar eventos por categoria
     useEffect(() => {
         if (selectedCategory === "") {
             setFilteredEvents(events);
@@ -50,7 +53,11 @@ export default function EventsPage() {
         console.log("Clicou no evento:", eventId);
     };
 
-    const categories = Array.from(new Set(events.map(event => event.categoria)));
+    const handleCategoryChange = (category: string) => {
+        setSelectedCategory(category);
+        // Se aplicar filtro, não carregamos mais páginas (limitação do filtro client-side)
+        // Para filtro server-side, você modificaria o fetchFunction no hook
+    };
 
     return (
         <div>
@@ -66,29 +73,24 @@ export default function EventsPage() {
                         <Filter
                             filters={categories}
                             selectedFilter={selectedCategory}
-                            onFilterChange={setSelectedCategory}
+                            onFilterChange={handleCategoryChange}
                         />
                     </FadeInOnScroll>
 
-                    <InfiniteScrollLoadMore totalItems={filteredEvents.length}>
-                        {(visibleCount) =>
-                            loading ? (
-                                <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                                    {Array.from({ length: 6 }).map((_, index) => (
-                                        <CardSkeleton key={index} />
-                                    ))}
-                                </div>
-                            ) : filteredEvents.length === 0 ? (
+                    {/* Se houver filtro ativo, não usamos paginação infinita */}
+                    {selectedCategory ? (
+                        <div className="py-8">
+                            {filteredEvents.length === 0 ? (
                                 <div className="flex justify-center items-center p-10">
                                     <FilterNotFound />
                                 </div>
                             ) : (
                                 <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                                    {filteredEvents.slice(0, visibleCount).map((event, index) => (
+                                    {filteredEvents.map((event, index) => (
                                         <FadeInOnScroll
                                             key={event.id}
                                             direction="up"
-                                            delay={0.2 + index * 0.1}
+                                            delay={0.2 + (index % 6) * 0.1}
                                             className="flex justify-center transition-all duration-300 transform hover:-translate-y-2"
                                         >
                                             <Events
@@ -97,9 +99,45 @@ export default function EventsPage() {
                                         </FadeInOnScroll>
                                     ))}
                                 </div>
-                            )
-                        }
-                    </InfiniteScrollLoadMore>
+                            )}
+                        </div>
+                    ) : (
+                        <InfiniteScrollWithPagination
+                            items={events}
+                            loading={loading}
+                            hasMore={hasMore}
+                            onLoadMore={loadMore}
+                        >
+                            {(items) =>
+                                loading && items.length === 0 ? (
+                                    <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                        {Array.from({ length: 6 }).map((_, index) => (
+                                            <CardSkeleton key={index} />
+                                        ))}
+                                    </div>
+                                ) : items.length === 0 ? (
+                                    <div className="flex justify-center items-center p-10">
+                                        <FilterNotFound />
+                                    </div>
+                                ) : (
+                                    <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                        {items.map((event, index) => (
+                                            <FadeInOnScroll
+                                                key={event.id}
+                                                direction="up"
+                                                delay={0.2 + (index % 6) * 0.1}
+                                                className="flex justify-center transition-all duration-300 transform hover:-translate-y-2"
+                                            >
+                                                <Events
+                                                    events={event}
+                                                />
+                                            </FadeInOnScroll>
+                                        ))}
+                                    </div>
+                                )
+                            }
+                        </InfiniteScrollWithPagination>
+                    )}
                 </div>
             </Container>
         </div>
