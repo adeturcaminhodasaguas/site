@@ -7,7 +7,7 @@ import Tables from "@/components/table/table";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormDialog } from '@/hooks/use-form-dialog';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { UsuarioForm, usuarioSchema, usuarioEditSchema } from "@/lib/schemas/schemas";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import FormUsuario from "@/components/forms/FormUsuario";
 import { Paginacao } from "@/components/paginacao";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function Usuario() {
+function UsuarioContent() {
     const [usuarios, setUsuarios] = useState<UsuarioType[]>([]);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -374,5 +374,13 @@ export default function Usuario() {
             </Modal>
 
         </Container>
+    );
+}
+
+export default function Usuario() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
+            <UsuarioContent />
+        </Suspense>
     );
 }

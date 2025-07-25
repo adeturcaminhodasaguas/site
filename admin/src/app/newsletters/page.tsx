@@ -13,9 +13,9 @@ import NewsletterService from "@/lib/service/NewsletterService";
 import { NewsletterType } from "@/lib/types/NewsletterType";
 import { Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 
-export default function Newsletters() {
+function NewslettersContent() {
     const [newsletters, setNewsletters] = useState<NewsletterType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [newsletterId, setNewsletterId] = useState<string | null>(null);
@@ -226,5 +226,13 @@ export default function Newsletters() {
                 </div>
             </Modal>
         </Container>
+    );
+}
+
+export default function Newsletters() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
+            <NewslettersContent />
+        </Suspense>
     );
 }

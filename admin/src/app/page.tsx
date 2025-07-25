@@ -11,7 +11,7 @@ import { formatarTelefone } from "@/lib/utils/mascara";
 import { Instagram, Link2, Pencil, Plus, Trash2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormDialog } from '@/hooks/use-form-dialog';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { MunicipioForm, municipioSchema } from "@/lib/schemas/schemas";
 import FormMunicipio from "@/components/forms/formMunicipio";
@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Paginacao } from "@/components/paginacao";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function Municipios() {
+function MunicipiosContent() {
     const [municipios, setMunicipios] = useState<MunicipioType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [municipioId, setMunicipioId] = useState<string>("");
@@ -444,5 +444,13 @@ export default function Municipios() {
                 </div>
             </Modal>
         </Container>
+    );
+}
+
+export default function Municipios() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
+            <MunicipiosContent />
+        </Suspense>
     );
 }

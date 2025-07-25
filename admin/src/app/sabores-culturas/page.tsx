@@ -19,12 +19,12 @@ import { formatarTelefone } from "@/lib/utils/mascara";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Switch } from "@/components/ui/switch";
 import { Instagram, Link2, Pencil, Plus, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Paginacao } from "@/components/paginacao";
 
-export default function SaboresCulturas() {
+function SaboresCulturasContent() {
     const [lista, setLista] = useState<MunicipioSelectType[]>([]);
     const [saboreCulturaLista, setSaboreCulturaLista] = useState<SaboresCulturaType[]>([]);
     const [saboresCulturaId, setSaboresCulturaId] = useState<string>("");
@@ -441,5 +441,13 @@ export default function SaboresCulturas() {
                 </div>
             </Modal>
         </Container>
+    );
+}
+
+export default function SaboresCulturas() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
+            <SaboresCulturasContent />
+        </Suspense>
     );
 }

@@ -10,12 +10,13 @@ import {
 } from "@/components/ui/pagination";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 
 type PaginacaoProps = {
     totalPage: number;
 };
 
-export function Paginacao({ totalPage }: PaginacaoProps) {
+function PaginacaoContent({ totalPage }: PaginacaoProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const currentPage = Number(searchParams.get("page")) || 1;
@@ -47,19 +48,37 @@ export function Paginacao({ totalPage }: PaginacaoProps) {
         <Pagination>
             <PaginationContent className="flex items-center gap-2">
                 <PaginationPrevious
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
+                    onClick={() => {
+                        if (currentPage > 1) {
+                            handlePageChange(currentPage - 1);
+                        }
+                    }}
+                    aria-disabled={currentPage === 1}
+                    style={currentPage === 1 ? { pointerEvents: "none", opacity: 0.5 } : {}}
                 >
                     Anterior
                 </PaginationPrevious>
                 {renderPages()}
                 <PaginationNext
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPage}
+                    onClick={() => {
+                        if (currentPage < totalPage) {
+                            handlePageChange(currentPage + 1);
+                        }
+                    }}
+                    aria-disabled={currentPage === totalPage}
+                    style={currentPage === totalPage ? { pointerEvents: "none", opacity: 0.5 } : {}}
                 >
                     Próximo
                 </PaginationNext>
             </PaginationContent>
         </Pagination>
+    );
+}
+
+export function Paginacao({ totalPage }: PaginacaoProps) {
+    return (
+        <Suspense fallback={<div className="flex justify-center py-4">Carregando...</div>}>
+            <PaginacaoContent totalPage={totalPage} />
+        </Suspense>
     );
 }

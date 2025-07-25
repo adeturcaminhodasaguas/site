@@ -9,7 +9,7 @@ import { MunicipioSelectType } from "@/lib/types/municipioType";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormDialog } from '@/hooks/use-form-dialog';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { EventoForm, eventoSchema } from "@/lib/schemas/schemas";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import FormEvento from "@/components/forms/formEvento";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Paginacao } from "@/components/paginacao";
 
-export default function Eventos() {
+function EventosContent() {
     const [eventos, setEventos] = useState<EventoType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [eventoId, setEventoId] = useState<string>("");
@@ -461,5 +461,13 @@ export default function Eventos() {
                 </div>
             </Modal>
         </Container>
+    );
+}
+
+export default function Eventos() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
+            <EventosContent />
+        </Suspense>
     );
 }

@@ -9,7 +9,7 @@ import { formatarTelefone } from "@/lib/utils/mascara";
 import { Instagram, Link2, Pencil, Plus, Trash2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormDialog } from '@/hooks/use-form-dialog';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { turismoExperienciaSchema, TurismoExperienciaForm } from "@/lib/schemas/schemas";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Paginacao } from "@/components/paginacao";
 
-export default function TurismoExperiencia() {
+function TurismoExperienciaContent() {
     const [turismoExperienciaLista, setTurismoExperienciaLista] = useState<TurismoExperienciaType[]>([]);
     const [lista, setLista] = useState<MunicipioSelectType[]>([]);
 
@@ -446,5 +446,13 @@ export default function TurismoExperiencia() {
             </Modal>
 
         </Container>
+    );
+}
+
+export default function TurismoExperiencia() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Carregando...</div>}>
+            <TurismoExperienciaContent />
+        </Suspense>
     );
 }
