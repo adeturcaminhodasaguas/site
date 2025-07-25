@@ -13,6 +13,9 @@ public interface EventoRepository extends GenericoRepository<EventoDomain, UUID>
     @Query("SELECT COUNT(e) FROM EventoDomain e WHERE e.destaque = true AND e.deletadoEm IS NULL")
     long countEventosComDestaque();
 
+    @Query("SELECT e FROM EventoDomain e WHERE e.ativo = true AND e.deletadoEm IS NULL")
+    List<EventoDomain> findAllWeb();
+
     List<EventoDomain> findByDestaqueAndDeletadoEmIsNull(boolean destaque);
 
     Page<EventoDomain> findAllByDeletadoEmIsNullOrderByNome(Pageable pageable);
